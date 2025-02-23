@@ -63,7 +63,7 @@ namespace BookManagement.Data.Repositories
         public async Task<bool> SoftDeleteAsync(int id)
         {
             var book = await _dbContext.Books.FindAsync(id);
-            if (book == null) return false;
+            if (book is null || book.IsDeleted) return false;
 
             book.IsDeleted = true;
             _dbContext.Books.Update(book);

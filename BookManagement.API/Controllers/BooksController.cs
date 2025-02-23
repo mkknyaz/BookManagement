@@ -1,9 +1,12 @@
 ﻿using BookManagement.API.DTOs;
-using BookManagement.Core.Models;
-using BookManagement.Core.Sevices;
-using BookManagement.Data.Interfaces;
+using BookManagement.Application.Books.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using BookManagement.Application.Models;
+using BookManagement.Application.Books.Commands;
+using MapsterMapper;
+using BookManagement.Application.Books.Commands.BookManagement.Application.Books.Commands;
 
 namespace BookManagement.API.Controllers
 {
@@ -11,11 +14,13 @@ namespace BookManagement.API.Controllers
     [Route("api/[controller]")]
     public class BooksController : ControllerBase
     {
-        private readonly IBookRepository _bookRepository;
+        private readonly ISender _sender;
+        private readonly IMapper _mapper;
 
-        public BooksController(IBookRepository bookRepository)
+        public BooksController(ISender sender, IMapper mapper)
         {
-            _bookRepository = bookRepository;
+            _sender = sender;
+            _mapper = mapper;
         }
 
         [HttpGet("{id}")]
@@ -24,27 +29,19 @@ namespace BookManagement.API.Controllers
         {
             if (id <= 0) return BadRequest("Invalid book ID.");
 
-            var book = await _bookRepository.GetBookByIdAsync(id);
-            if (book is null) return NotFound();
-
-            book.ViewsCount++;
-            await _bookRepository.UpdateBookAsync(book);
-            await _bookRepository.SaveChangesAsync();
-
-            var popularityCalculator = new PopularityScore();
-            var score = book.GetPopularityScore(popularityCalculator);
-
-            var bookDto = new BookDetailsDTO
+            var query = new GetBookQuery(id);
+            BookReadModel readModel;
+            try
             {
-                Id = book.Id,
-                Title = book.Title,
-                PublicationYear = book.PublicationYear,
-                AuthorName = book.AuthorName,
-                ViewsCount = book.ViewsCount,
-                PopularityScore = score
-            };
-            return Ok(bookDto);
+                readModel = await _sender.Send(query);
+                var bookDetailsDTO = _mapper.Map<BookDetailsDTO>(readModel);
+                return Ok(bookDetailsDTO);
 
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
         [HttpGet]
@@ -52,9 +49,10 @@ namespace BookManagement.API.Controllers
         public async Task<IActionResult> GetBooksTitle([FromQuery] int pageNumber, [FromQuery] int pageSize)
         {
             if(pageNumber <= 0 || pageSize <= 0) return BadRequest("Page number and page size must be greater than zero.");
-            var books = await _bookRepository.GetBooksTitleAsync(pageNumber, pageSize);
-
-            return Ok(books);
+            
+            var query = new GetBooksTitlesQuery(pageNumber, pageSize);
+            var titles = await _sender.Send(query);
+            return Ok(titles);
         }
 
         [HttpPost]
@@ -65,20 +63,18 @@ namespace BookManagement.API.Controllers
             if (string.IsNullOrWhiteSpace(bookDTO.Title)) return BadRequest("Title cannot be empty.");
             if (string.IsNullOrWhiteSpace(bookDTO.AuthorName)) return BadRequest("Author name cannot be empty.");
             if (bookDTO.PublicationYear > DateTime.Now.Year) return BadRequest("Publication year cannot be in the future.");
-            
-            if (await _bookRepository.GetBookByTitleAsync(bookDTO.Title) is not null) return BadRequest($"Book with '{bookDTO.Title}' Title already exist."); 
 
-            var book = new Book
+            var command = new CreateBookCommand(bookDTO.Title, bookDTO.PublicationYear, bookDTO.AuthorName);
+            try
             {
-                Title = bookDTO.Title,
-                PublicationYear = bookDTO.PublicationYear,
-                AuthorName = bookDTO.AuthorName
-            };
-
-            await _bookRepository.AddBookAsync(book);
-            await _bookRepository.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetBook), new { id = book.Id }, book);
+                BookReadModel readModel = await _sender.Send(command);
+                var bookDetailsDTO = _mapper.Map<BookDetailsDTO>(readModel);
+                return CreatedAtAction(nameof(GetBook), new { id = bookDetailsDTO.Id }, bookDetailsDTO);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPost("bulk")]
@@ -87,30 +83,18 @@ namespace BookManagement.API.Controllers
         {
             if (createBookDTOs is null || !createBookDTOs.Any()) return BadRequest("No books provided.");
 
-            var booksTitle = createBookDTOs.Select(x => x.Title).ToList();
-
-            var existingBooks = await _bookRepository.GetBooksByTitleAsync(booksTitle);
-
-            var alreadyCreatedBooks = existingBooks.Select(x => x.Title).Distinct().ToList();
-            if (alreadyCreatedBooks.Any())
+            var booksData = createBookDTOs.Select(dto => (dto.Title, dto.PublicationYear, dto.AuthorName));
+            var command = new CreateBooksBulkCommand(booksData);
+            try
             {
-                var existingTitles = string.Join(", ", alreadyCreatedBooks);
-                return BadRequest($"Books with '{existingTitles}' Titles already exist.");
+                var createdIds = await _sender.Send(command);
+                return StatusCode(201, createdIds);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
 
-            var books = createBookDTOs.Select(dto => new Book
-            {
-                Title = dto.Title,
-                PublicationYear = dto.PublicationYear,
-                AuthorName = dto.AuthorName,
-                ViewsCount = 0,
-                IsDeleted = false
-            }).ToList();
-
-            await _bookRepository.AddBooksBulkAsync(books);
-            await _bookRepository.SaveChangesAsync();
-
-            return StatusCode(201, books);
         }
 
         [HttpPut("{id}")]
@@ -122,17 +106,10 @@ namespace BookManagement.API.Controllers
             if (string.IsNullOrWhiteSpace(updateBookDto.AuthorName)) return BadRequest("Author name cannot be empty.");
             if (updateBookDto.PublicationYear > DateTime.Now.Year) return BadRequest("Publication year cannot be in the future.");
 
-            var book = await _bookRepository.GetBookByIdAsync(id);
-            if (book is null) return NotFound();
-
-            book.Title = updateBookDto.Title;
-            book.AuthorName = updateBookDto.AuthorName;
-            book.PublicationYear = updateBookDto.PublicationYear;
-
-            await _bookRepository.UpdateBookAsync(book);
-            await _bookRepository.SaveChangesAsync();
-
-            return Ok(book);
+            var command = new UpdateBookCommand(id, updateBookDto.Title, updateBookDto.PublicationYear, updateBookDto.AuthorName);
+            bool result = await _sender.Send(command);
+            if (!result) return NotFound($"Book with id '{id}' not found.");
+            return Ok();
         }
 
         [HttpDelete("{id}")]
@@ -141,10 +118,9 @@ namespace BookManagement.API.Controllers
         {
             if (id <= 0) return BadRequest("Invalid book ID.");
 
-            var result = await _bookRepository.SoftDeleteAsync(id);
-            if (!result) return NotFound($"Book with id '{id}' already deleted or not found");
-
-            await _bookRepository.SaveChangesAsync();
+            var command = new SoftDeleteBookCommand(id);
+            bool result = await _sender.Send(command);
+            if (!result) return NotFound($"Book with id '{id}' not found or already deleted.");
             return NoContent();
         }
 
@@ -154,21 +130,10 @@ namespace BookManagement.API.Controllers
         {
             if (ids is null) return BadRequest("No ids provided.");
 
-            var distinctIds = ids.Distinct().ToList();
-            var result = await _bookRepository.SoftDeleteBulkAsync(distinctIds);
-            if(result)
-            {
-                await _bookRepository.SaveChangesAsync();
-                return NoContent();
-            }
-
-            var foundBooks = await _bookRepository.GetBooksByIdsAsync(distinctIds);
-            var foundBooksIds = foundBooks.Select(x => x.Id).ToList();
-
-            var missingBooksIds = distinctIds.Except(foundBooksIds).ToList();
-            return BadRequest($"Books with the following IDs were not found or already deleted: {string.Join(", ", missingBooksIds)}");
+            var command = new BulkSoftDeleteBooksCommand(ids.Distinct().ToList());
+            var missingIds = await _sender.Send(command);
+            if (missingIds.Any()) return BadRequest($"Books with the following IDs were not found or already deleted: {string.Join(", ", missingIds)}");
+            return NoContent();
         }
-
-
     }
 }

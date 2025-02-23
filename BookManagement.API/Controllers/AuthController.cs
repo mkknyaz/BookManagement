@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Text;
 using BookManagement.API.DTOs;
 using BookManagement.Core.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;

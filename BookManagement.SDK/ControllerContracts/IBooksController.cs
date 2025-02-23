@@ -12,9 +12,9 @@ namespace BookManagement.SDK.ControllerContracts
     {
         Task<IActionResult> GetBook(int id);
         Task<IActionResult> GetBooksTitle(int pageNumber, int pageSize);
-        Task<IActionResult> CreateBook(CreateBookDTO dto);
-        Task<IActionResult> CreateBooksBulk(IEnumerable<CreateBookDTO> dtos);
-        Task<IActionResult> UpdateBook(int id, UpdateBookDTO dto);
+        Task<IActionResult> CreateBook(CreateBookDTO createBookDTO);
+        Task<IActionResult> CreateBooksBulk(IEnumerable<CreateBookDTO> CreateBookDTOs);
+        Task<IActionResult> UpdateBook(int id, UpdateBookDTO updateBookDTO);
         Task<IActionResult> SoftDeleteBook(int id);
         Task<IActionResult> SoftDeleteBooksBulk(IEnumerable<int> ids);
     }

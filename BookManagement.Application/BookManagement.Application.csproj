@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BookManagement.Core\BookManagement.Core.csproj" />
     <ProjectReference Include="..\BookManagement.Data\BookManagement.Data.csproj" />
+    <ProjectReference Include="..\BookManagement.SDK\BookManagement.SDK.csproj" />
   </ItemGroup>
 
 </Project>

@@ -7,8 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-	  <PackageReference Include="Mapster" Version="7.4.0" />
-	  <PackageReference Include="Mapster.DependencyInjection" Version="1.0.1" />
 	  <PackageReference Include="MediatR" Version="11.1.0" />
 	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.13" />
 	  <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.0" />
@@ -23,8 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BookManagement.Application\BookManagement.Application.csproj" />
-    <ProjectReference Include="..\BookManagement.Core\BookManagement.Core.csproj" />
-    <ProjectReference Include="..\BookManagement.Data\BookManagement.Data.csproj" />
+    <ProjectReference Include="..\BookManagement.SDK\BookManagement.SDK.csproj" />
   </ItemGroup>
 
 </Project>

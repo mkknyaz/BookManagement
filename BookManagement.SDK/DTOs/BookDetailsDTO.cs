@@ -1,6 +1,6 @@
-﻿namespace BookManagement.Application.Models
+﻿namespace BookManagement.SDK.DTOs
 {
-    public class BookReadModel
+    public class BookDetailsDTO
     {
         public int Id { get; set; }
         public string Title { get; set; }

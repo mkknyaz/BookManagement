@@ -1,4 +1,4 @@
-﻿namespace BookManagement.API.DTOs
+﻿namespace BookManagement.SDK.DTOs
 {
     public class RegisterDTO
     {

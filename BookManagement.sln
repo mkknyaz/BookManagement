@@ -25,6 +25,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Элементы решен
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookManagement.Application", "BookManagement.Application\BookManagement.Application.csproj", "{60EE38A3-4450-4B7B-8564-C358A5BC4569}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookManagement.SDK", "BookManagement.SDK\BookManagement.SDK.csproj", "{F81599BF-595C-4A3F-A63F-DBB3876C27E9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{60EE38A3-4450-4B7B-8564-C358A5BC4569}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{60EE38A3-4450-4B7B-8564-C358A5BC4569}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{60EE38A3-4450-4B7B-8564-C358A5BC4569}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F81599BF-595C-4A3F-A63F-DBB3876C27E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F81599BF-595C-4A3F-A63F-DBB3876C27E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F81599BF-595C-4A3F-A63F-DBB3876C27E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F81599BF-595C-4A3F-A63F-DBB3876C27E9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

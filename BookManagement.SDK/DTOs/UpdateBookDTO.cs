@@ -1,6 +1,6 @@
-﻿namespace BookManagement.API.DTOs
+﻿namespace BookManagement.SDK.DTOs
 {
-    public class CreateBookDTO
+    public class UpdateBookDTO
     {
         public string Title { get; set; }
         public int PublicationYear { get; set; }

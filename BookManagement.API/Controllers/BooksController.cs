@@ -1,26 +1,23 @@
-﻿using BookManagement.API.DTOs;
+﻿using BookManagement.SDK.DTOs;
 using BookManagement.Application.Books.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using BookManagement.Application.Models;
 using BookManagement.Application.Books.Commands;
-using MapsterMapper;
 using BookManagement.Application.Books.Commands.BookManagement.Application.Books.Commands;
+using BookManagement.SDK.ControllerContracts;
 
 namespace BookManagement.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class BooksController : ControllerBase
+    public class BooksController : ControllerBase, IBooksController
     {
         private readonly ISender _sender;
-        private readonly IMapper _mapper;
 
-        public BooksController(ISender sender, IMapper mapper)
+        public BooksController(ISender sender)
         {
             _sender = sender;
-            _mapper = mapper;
         }
 
         [HttpGet("{id}")]
@@ -29,13 +26,11 @@ namespace BookManagement.API.Controllers
         {
             if (id <= 0) return BadRequest("Invalid book ID.");
 
-            var query = new GetBookQuery(id);
-            BookReadModel readModel;
             try
             {
-                readModel = await _sender.Send(query);
-                var bookDetailsDTO = _mapper.Map<BookDetailsDTO>(readModel);
-                return Ok(bookDetailsDTO);
+                var query = new GetBookQuery(id);
+                var BookDetailsDTO = await _sender.Send(query);
+                return Ok(BookDetailsDTO);
 
             }
             catch (Exception ex)
@@ -67,8 +62,7 @@ namespace BookManagement.API.Controllers
             var command = new CreateBookCommand(bookDTO.Title, bookDTO.PublicationYear, bookDTO.AuthorName);
             try
             {
-                BookReadModel readModel = await _sender.Send(command);
-                var bookDetailsDTO = _mapper.Map<BookDetailsDTO>(readModel);
+                var bookDetailsDTO = await _sender.Send(command);
                 return CreatedAtAction(nameof(GetBook), new { id = bookDetailsDTO.Id }, bookDetailsDTO);
             }
             catch (Exception ex)
@@ -83,8 +77,7 @@ namespace BookManagement.API.Controllers
         {
             if (createBookDTOs is null || !createBookDTOs.Any()) return BadRequest("No books provided.");
 
-            var booksData = createBookDTOs.Select(dto => (dto.Title, dto.PublicationYear, dto.AuthorName));
-            var command = new CreateBooksBulkCommand(booksData);
+            var command = new CreateBooksBulkCommand(createBookDTOs.Select(dto => (dto.Title, dto.PublicationYear, dto.AuthorName)));
             try
             {
                 var createdIds = await _sender.Send(command);

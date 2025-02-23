@@ -1,17 +1,18 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using BookManagement.API.DTOs;
+using BookManagement.SDK.DTOs;
 using BookManagement.Core.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using BookManagement.SDK.ControllerContracts;
 
 namespace BookManagement.API.Controllers
 {
     [ApiController]
     [Route("api/controller")]
-    public class AuthController : ControllerBase
+    public class AuthController : ControllerBase, IAuthController
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;

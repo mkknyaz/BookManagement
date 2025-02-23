@@ -1,14 +1,14 @@
-﻿using BookManagement.Application.Models;
-using BookManagement.Core.Models;
+﻿using BookManagement.Core.Models;
 using BookManagement.Data.Interfaces;
+using BookManagement.SDK.DTOs;
 using MediatR;
 
 namespace BookManagement.Application.Books.Commands
 {
 
-    public record CreateBookCommand(string Title, int PublicationYear, string AuthorName) : IRequest<BookReadModel>;
+    public record CreateBookCommand(string Title, int PublicationYear, string AuthorName) : IRequest<BookDetailsDTO>;
 
-    public class CreateBookCommandHandler : IRequestHandler<CreateBookCommand, BookReadModel>
+    public class CreateBookCommandHandler : IRequestHandler<CreateBookCommand, BookDetailsDTO>
     {
         private readonly IBookRepository _bookRepository;
 
@@ -17,7 +17,7 @@ namespace BookManagement.Application.Books.Commands
             _bookRepository = bookRepository;
         }
 
-        public async Task<BookReadModel> Handle(CreateBookCommand request, CancellationToken cancellationToken)
+        public async Task<BookDetailsDTO> Handle(CreateBookCommand request, CancellationToken cancellationToken)
         {
             var existingBook = await _bookRepository.GetBookByTitleAsync(request.Title);
             if (existingBook is not null) throw new System.Exception($"Book with title '{request.Title}' already exists.");
@@ -34,7 +34,7 @@ namespace BookManagement.Application.Books.Commands
             await _bookRepository.AddBookAsync(book);
             await _bookRepository.SaveChangesAsync();
 
-            return new BookReadModel
+            return new BookDetailsDTO
             {
                 Id = book.Id,
                 Title = book.Title,

@@ -1,13 +1,13 @@
-﻿using BookManagement.Application.Models;
-using BookManagement.Core.Sevices;
+﻿using BookManagement.Core.Sevices;
 using BookManagement.Data.Interfaces;
+using BookManagement.SDK.DTOs;
 using MediatR;
 
 namespace BookManagement.Application.Books.Queries
 {
-    public record GetBookQuery(int Id) : IRequest<BookReadModel>;
+    public record GetBookQuery(int Id) : IRequest<BookDetailsDTO>;
 
-    public class GetBookQueryHandler : IRequestHandler<GetBookQuery, BookReadModel>
+    public class GetBookQueryHandler : IRequestHandler<GetBookQuery, BookDetailsDTO>
     {
         private readonly IBookRepository _bookRepository;
 
@@ -16,7 +16,7 @@ namespace BookManagement.Application.Books.Queries
             _bookRepository = bookRepository;
         }
 
-        public async Task<BookReadModel> Handle(GetBookQuery request, CancellationToken cancellationToken)
+        public async Task<BookDetailsDTO> Handle(GetBookQuery request, CancellationToken cancellationToken)
         {
             var book = await _bookRepository.GetBookByIdAsync(request.Id);
             if (book is null) throw new System.Exception($"Book with id '{request.Id}' was not found.");
@@ -28,7 +28,7 @@ namespace BookManagement.Application.Books.Queries
             var popularityCalculator = new PopularityScore();
             var score = book.GetPopularityScore(popularityCalculator);
 
-            return new BookReadModel
+            return new BookDetailsDTO
             {
                 Id = book.Id,
                 Title = book.Title,

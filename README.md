@@ -30,8 +30,10 @@ It also provides endpoints for retrieving a list of books (only titles) sorted b
 - **Documentation:** Swagger for API documentation
 
 ## Architecture
-The solution follows a 3-layered architecture:
+The solution follows a multi-layered architecture with the following projects
 1. **Core**  
 2. **Data**  
 3. **API** 
+4. **Application**
+5. **SDK**
 
